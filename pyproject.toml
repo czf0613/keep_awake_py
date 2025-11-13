@@ -14,7 +14,9 @@ classifiers = [
 ]
 dependencies = []
 
-
 [build-system]
 requires = ["setuptools>=45.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = ["pytest>=7.0.1", "setuptools>=59.6.0"]
