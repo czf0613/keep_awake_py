@@ -1,6 +1,6 @@
 [project]
 name = "keep_awake"
-version = "0.0.1"
+version = "0.0.2"
 description = "Prevent your computer from going to sleep."
 readme = "README.md"
 keywords = ["sleep", "prevent", "awake", "idle"]
@@ -19,4 +19,4 @@ requires = ["setuptools>=45.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
-dev = ["pytest>=7.0.1", "setuptools>=59.6.0"]
+dev = ["pytest>=7.0.1"]
