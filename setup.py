@@ -1,0 +1,28 @@
+from setuptools import setup, Extension
+import os
+import sys
+
+project_dir = os.path.abspath(os.path.dirname(__file__))
+c_modules = []
+
+if sys.platform == "win32":
+    c_modules.append(
+        Extension(
+            "keep_awake._native_api",
+            sources=["libpm/src/pm.c", "src/keep_awake/py_module.c"],
+            include_dirs=["libpm/include"],
+        )
+    )
+elif sys.platform == "darwin":
+    c_modules.append(
+        Extension(
+            "keep_awake._native_api",
+            sources=["libpm/src/pm.c", "src/keep_awake/py_module.c"],
+            include_dirs=["libpm/include"],
+            extra_link_args=["-framework", "CoreFoundation", "-framework", "IOKit"],
+        )
+    )
+else:
+    raise ValueError("Unsupported platform")
+
+setup(ext_modules=c_modules)

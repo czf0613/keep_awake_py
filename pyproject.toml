@@ -1,0 +1,20 @@
+[project]
+name = "keep_awake"
+version = "0.0.1"
+description = "Prevent your computer from going to sleep."
+readme = "README.md"
+keywords = ["sleep", "prevent", "awake", "idle"]
+authors = [{ name = "Kevin Chen", email = "1354016594@qq.com" }]
+license = "MIT"
+requires-python = ">=3.6"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS :: MacOS X",
+]
+dependencies = []
+
+
+[build-system]
+requires = ["setuptools>=45.0", "wheel"]
+build-backend = "setuptools.build_meta"
