@@ -133,7 +133,7 @@ wheels = [
 
 [[package]]
 name = "keep-awake"
-version = "0.0.2"
+version = "1.0.0"
 source = { editable = "." }
 
 [package.dev-dependencies]

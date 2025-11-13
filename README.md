@@ -7,7 +7,7 @@ Keep your system on and screen on, it will not fall asleep. It is useful in some
 ## How to use?
 
 ```shell
-pip install keep_awake >= 0.0.2
+pip install keep_awake == 1.0.0
 ```
 
 This module exposes only two methods: `prevent_sleep` and `allow_sleep`, both of them taks no arguments.
@@ -24,7 +24,7 @@ If you forget to call `allow_sleep` before exiting your program, it doesn't matt
 
 ### macOS✅
 
-Both arm64 and x64 are OK, this code only depends on `IOKit` and `CoreFoundation`, which is built-in any macOS.
+Both arm64 and x64 are OK, this code only depends on `IOKit` and `CoreFoundation`, which is built-in macOS Framework.
 
 Methods on macOS are concurrent safe.
 
