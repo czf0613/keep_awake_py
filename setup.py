@@ -1,8 +1,6 @@
 from setuptools import setup, Extension
-import os
 import sys
 
-project_dir = os.path.abspath(os.path.dirname(__file__))
 c_modules = []
 
 if sys.platform == "win32":
