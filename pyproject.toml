@@ -1,16 +1,17 @@
 [project]
 name = "keep_awake"
-version = "1.0.2"
+version = "1.1.0"
 description = "Prevent your computer from going to sleep."
 readme = "README.md"
 keywords = ["sleep", "prevent", "awake", "idle"]
 authors = [{ name = "Kevin Chen", email = "1354016594@qq.com" }]
 license = "MIT"
-requires-python = ">=3.6"
+requires-python = ">=3.5"
 classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
 ]
 dependencies = []
 

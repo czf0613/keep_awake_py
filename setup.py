@@ -21,6 +21,9 @@ elif sys.platform == "darwin":
             extra_link_args=["-framework", "CoreFoundation", "-framework", "IOKit"],
         )
     )
+elif sys.platform == "linux":
+    # nothing todo, native python implementation
+    exit(0)
 else:
     raise ValueError("Unsupported platform")
 

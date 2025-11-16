@@ -7,7 +7,7 @@ Keep your system on and screen on, it will not fall asleep. It is useful in some
 ## How to use?
 
 ```shell
-pip install keep_awake==1.0.2
+pip install keep_awake==1.1.0
 ```
 
 This module exposes only two methods: `prevent_sleep` and `allow_sleep`, both of them taks no arguments.
@@ -17,6 +17,15 @@ This module exposes only two methods: `prevent_sleep` and `allow_sleep`, both of
 You won't have any exceptions by calling any methods twice, or calling `allow_sleep` without calling `prevent_sleep`, they have built-in protection.
 
 If you forget to call `allow_sleep` before exiting your program, it doesn't matter, it will back to usual once the module is released.
+
+We also provide a context manager for you to manage the state automatically, just like this:
+
+``` python
+from keep_awake import KeepAwakeGuard
+
+with KeepAwakeGuard():
+    # do your work here
+```
 
 
 

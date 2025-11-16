@@ -20,8 +20,8 @@ static PyObject *py_allow_sleep(PyObject *obj, PyObject *args)
 }
 
 static PyMethodDef ModMethods[] = {
-    {"prevent_sleep", py_prevent_sleep, METH_NOARGS, NULL},
-    {"allow_sleep", py_allow_sleep, METH_NOARGS, NULL},
+    {"_prevent_sleep", py_prevent_sleep, METH_NOARGS, NULL},
+    {"_allow_sleep", py_allow_sleep, METH_NOARGS, NULL},
     {NULL, NULL, 0, NULL}};
 
 static struct PyModuleDef module = {
