@@ -20,7 +20,7 @@ If you forget to call `allow_sleep` before exiting your program, it doesn't matt
 
 We also provide a context manager for you to manage the state automatically, just like this:
 
-``` python
+```python
 from keep_awake import KeepAwakeGuard
 
 with KeepAwakeGuard():
@@ -45,13 +45,19 @@ We didn't test widely on various versions of Windows because I have no Windows c
 
 But basically, it can work fine on `Windows 10 x64` and `Windows 11 x64`. I have already tested.
 
-Keeping system awake on Windows needs a dedicated thread to loop periodically, so it is hard to perform concurrent-control. Do NOT try any race condition on Windows!
+Keeping system awake on Windows needs a dedicated thread to sync periodically(typically 1 second), so it is hard to perform concurrent-control. Do NOT try to call methods in less than 1 second!
 
 
 
-### Linux❌
+### Linux⚠️
 
-Planning to do, but Linux distros are very complicated, we are still finding some way to implement.
+Linux distros are various, we can only support Gnome and KDE. They have dbus api so this part is implemented in pure python. If you need this feature, please install with this command:
+
+```shell
+pip install keep_awake[linux]
+```
+
+Methods on Linux are concurrent safe.
 
 
 

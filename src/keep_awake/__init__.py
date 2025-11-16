@@ -1,6 +1,6 @@
 from ._native_api import _prevent_sleep, _allow_sleep
 import sys
-from .dbus_api import session_on, session_off
+
 
 __all__ = ["prevent_sleep", "allow_sleep", "KeepAwakeGuard"]
 os_platform = sys.platform
@@ -14,6 +14,8 @@ def prevent_sleep() -> bool:
         return _prevent_sleep()
     elif os_platform == "linux":
         # in linux, use dbus to send a message to avoid sleep
+        from .dbus_api import session_on
+
         return session_on()
     else:
         raise NotImplementedError(f"Platform '{os_platform}' is not supported.")
@@ -25,6 +27,8 @@ def allow_sleep() -> None:
     if os_platform in ["darwin", "win32"]:
         _allow_sleep()
     elif os_platform == "linux":
+        from .dbus_api import session_off
+
         session_off()
     else:
         raise NotImplementedError(f"Platform '{os_platform}' is not supported.")
