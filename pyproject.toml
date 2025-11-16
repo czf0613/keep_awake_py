@@ -1,6 +1,6 @@
 [project]
 name = "keep_awake"
-version = "1.0.1"
+version = "1.0.2"
 description = "Prevent your computer from going to sleep."
 readme = "README.md"
 keywords = ["sleep", "prevent", "awake", "idle"]

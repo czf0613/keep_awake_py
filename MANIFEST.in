@@ -1,3 +1,3 @@
 include libpm/include/pm.h
-include libpm/src/pm_windows.h
-include libpm/src/pm_macos.h
+include libpm/src/pm_windows.c
+include libpm/src/pm_macos.c

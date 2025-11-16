@@ -7,7 +7,7 @@ Keep your system on and screen on, it will not fall asleep. It is useful in some
 ## How to use?
 
 ```shell
-pip install keep_awake==1.0.1
+pip install keep_awake==1.0.2
 ```
 
 This module exposes only two methods: `prevent_sleep` and `allow_sleep`, both of them taks no arguments.
