@@ -23,7 +23,7 @@ elif sys.platform == "darwin":
     )
 elif sys.platform == "linux":
     # nothing todo, native python implementation
-    exit(0)
+    pass
 else:
     raise ValueError("Unsupported platform")
 

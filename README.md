@@ -57,6 +57,8 @@ Linux distros are various, we can only support Gnome and KDE. They have dbus api
 pip install keep_awake[linux]
 ```
 
+If you failed to install, try to use your package manager to install `cmake`, `pkg-config`, `libdbus-1-dev` and `libglib2.0-dev`.
+
 Methods on Linux are concurrent safe.
 
 

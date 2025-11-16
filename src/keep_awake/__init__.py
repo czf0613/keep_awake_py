@@ -1,4 +1,3 @@
-from ._native_api import _prevent_sleep, _allow_sleep
 import sys
 
 
@@ -11,6 +10,8 @@ def prevent_sleep() -> bool:
 
     # in macOS and windows, just call the native api
     if os_platform in ["darwin", "win32"]:
+        from ._native_api import _prevent_sleep
+
         return _prevent_sleep()
     elif os_platform == "linux":
         # in linux, use dbus to send a message to avoid sleep
@@ -25,6 +26,8 @@ def allow_sleep() -> None:
     """Allow the system to go to sleep. (Resume its power mamagement behavior)"""
 
     if os_platform in ["darwin", "win32"]:
+        from ._native_api import _allow_sleep
+
         _allow_sleep()
     elif os_platform == "linux":
         from .dbus_api import session_off
