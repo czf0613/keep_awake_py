@@ -7,7 +7,7 @@ Keep your system on and screen on, it will not fall asleep. It is useful in some
 ## How to use?
 
 ```shell
-pip install keep_awake==1.1.0
+pip install keep_awake
 ```
 
 This module exposes only two methods: `prevent_sleep` and `allow_sleep`, both of them taks no arguments.
@@ -41,11 +41,11 @@ Methods on macOS are concurrent safe.
 
 ### Windows✅
 
-We didn't test widely on various versions of Windows because I have no Windows computer :(
+We didn't test widely on various versions of Windows because I have no more Windows computer :(
 
 But basically, it can work fine on `Windows 10 x64` and `Windows 11 x64`. I have already tested.
 
-Keeping system awake on Windows needs a dedicated thread to sync periodically(typically 1 second), so it is hard to perform concurrent-control. Do NOT try to call methods in less than 1 second!
+Methods on Windows are concurrent safe.
 
 
 

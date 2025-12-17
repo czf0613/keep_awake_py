@@ -1,16 +1,17 @@
 #include "pm.h"
 #include <windows.h>
 
-static volatile bool flag = false;
+static HANDLE hthread = NULL;
+static SRWLOCK mutex = SRWLOCK_INIT;
 
 // Windows下的防止休眠本质上是靠新开启一个线程来实现的
-// 这个线程一直轮询防止休眠
-DWORD WINAPI run_forever(LPVOID arg)
+// 这个线程一直轮询防止休眠，线程停止，自然而然就恢复休眠了
+DWORD WINAPI run_forever(LPVOID args)
 {
-    while (flag)
+    while (hthread != NULL)
     {
         SetThreadExecutionState(ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
-        Sleep(1000);
+        Sleep(5000);
     }
 
     return 0;
@@ -20,12 +21,26 @@ DWORD WINAPI run_forever(LPVOID arg)
 // 高频调用的情况下，的确可能会出现内存泄漏
 PM_API bool prevent_sleep(void)
 {
-    flag = true;
-    HANDLE handle = CreateThread(NULL, 0, run_forever, NULL, 0, NULL);
-    return handle != NULL;
+    AcquireSRWLockExclusive(&mutex);
+
+    hthread = CreateThread(NULL, 0, run_forever, NULL, 0, NULL);
+    bool success = hthread != NULL;
+
+    ReleaseSRWLockExclusive(&mutex);
+
+    return success;
 }
 
 PM_API void allow_sleep(void)
 {
-    flag = false;
+    AcquireSRWLockExclusive(&mutex);
+
+    if (hthread != NULL)
+    {
+        TerminateThread(hthread, 0);
+        CloseHandle(hthread);
+        hthread = NULL;
+    }
+
+    ReleaseSRWLockExclusive(&mutex);
 }
