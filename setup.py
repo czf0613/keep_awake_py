@@ -2,8 +2,9 @@ from setuptools import setup, Extension
 import sys
 
 c_modules = []
+os_platform = sys.platform
 
-if sys.platform == "win32":
+if os_platform == "win32":
     c_modules.append(
         Extension(
             "keep_awake._native_api",
@@ -12,7 +13,7 @@ if sys.platform == "win32":
             extra_compile_args=["/utf-8"],
         )
     )
-elif sys.platform == "darwin":
+elif os_platform == "darwin":
     c_modules.append(
         Extension(
             "keep_awake._native_api",
@@ -21,7 +22,7 @@ elif sys.platform == "darwin":
             extra_link_args=["-framework", "CoreFoundation", "-framework", "IOKit"],
         )
     )
-elif sys.platform == "linux":
+elif os_platform == "linux":
     # nothing todo, native python implementation
     pass
 else:

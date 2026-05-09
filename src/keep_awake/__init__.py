@@ -1,5 +1,5 @@
 import sys
-
+from typing import final
 
 __all__ = ["prevent_sleep", "allow_sleep", "KeepAwakeGuard"]
 os_platform = sys.platform
@@ -37,6 +37,7 @@ def allow_sleep() -> None:
         raise NotImplementedError(f"Platform '{os_platform}' is not supported.")
 
 
+@final
 class KeepAwakeGuard:
     """A context manager to keep the system awake within its scope."""
 
