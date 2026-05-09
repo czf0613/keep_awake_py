@@ -4,7 +4,7 @@
 static HANDLE h_thread = NULL;
 static SRWLOCK mutex = SRWLOCK_INIT;
 
-DWORD WINAPI run_forever(LPVOID args)
+static DWORD WINAPI run_forever(LPVOID args)
 {
     do
     {
@@ -15,7 +15,7 @@ DWORD WINAPI run_forever(LPVOID args)
     return 0;
 }
 
-PM_API bool prevent_sleep(void)
+static bool prevent_sleep(void)
 {
     AcquireSRWLockExclusive(&mutex);
 
@@ -27,7 +27,7 @@ PM_API bool prevent_sleep(void)
     return success;
 }
 
-PM_API void allow_sleep(void)
+static void allow_sleep(void)
 {
     AcquireSRWLockExclusive(&mutex);
 
@@ -39,4 +39,22 @@ PM_API void allow_sleep(void)
     }
 
     ReleaseSRWLockExclusive(&mutex);
+}
+
+PyObject *pm_prevent_sleep(PyObject *self, PyObject *args)
+{
+    if (prevent_sleep())
+    {
+        Py_RETURN_TRUE;
+    }
+    else
+    {
+        Py_RETURN_FALSE;
+    }
+}
+
+PyObject *pm_allow_sleep(PyObject *self, PyObject *args)
+{
+    allow_sleep();
+    Py_RETURN_NONE;
 }

@@ -50,4 +50,4 @@ def session_off() -> None:
             print(f"Failed to communicate with dbus: {e}")
 
 
-atexit.register(_bus.close())
+atexit.register(_bus.close)

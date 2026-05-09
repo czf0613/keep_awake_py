@@ -7,8 +7,8 @@ if sys.platform == "win32":
     c_modules.append(
         Extension(
             "keep_awake._native_api",
-            sources=["libpm/src/pm_windows.c", "src/keep_awake/py_module.c"],
-            include_dirs=["libpm/include"],
+            sources=["native_code/src/pm_windows.c", "native_code/src/ext.c"],
+            include_dirs=["native_code/include"],
             extra_compile_args=["/utf-8"],
         )
     )
@@ -16,8 +16,8 @@ elif sys.platform == "darwin":
     c_modules.append(
         Extension(
             "keep_awake._native_api",
-            sources=["libpm/src/pm_macos.c", "src/keep_awake/py_module.c"],
-            include_dirs=["libpm/include"],
+            sources=["native_code/src/pm_macos.c", "native_code/src/ext.c"],
+            include_dirs=["native_code/include"],
             extra_link_args=["-framework", "CoreFoundation", "-framework", "IOKit"],
         )
     )

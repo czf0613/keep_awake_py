@@ -1,16 +1,39 @@
-# Python-generated files
+# Virtual environment
+.venv/
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[oc]
-build/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+*.dylib
+*.dll
+*.pyd
+
+# Distribution / packaging
 dist/
+build/
+*.egg-info/
+*.egg
+eggs/
 wheels/
-*.egg-info
+MANIFEST
+
+# Unit test / coverage
 .pytest_cache/
-src/**/*.so
-src/**/*.pyd
+.coverage
+.coverage.*
 
-# Virtual environments
-.venv
+# IDE
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
 
-# fs rubbish
+# OS
 .DS_Store
+Thumbs.db
