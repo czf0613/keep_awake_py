@@ -23,7 +23,7 @@ def prevent_sleep() -> bool:
 
 
 def allow_sleep() -> None:
-    """Allow the system to go to sleep. (Resume its power mamagement behavior)"""
+    """Allow the system to go to sleep. (Resume its power management behavior.)"""
 
     if os_platform in ["darwin", "win32"]:
         from ._native_api import _allow_sleep

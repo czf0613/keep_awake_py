@@ -5,12 +5,13 @@ include setup.py
 
 recursive-include native_code *.c *.h
 
-exclude CLAUDE.md
+exclude AGENTS.md
 exclude .gitignore
 prune .venv
 prune .github
 prune .claude
 prune .vscode
 prune tests
+prune docs
 prune build
 prune dist

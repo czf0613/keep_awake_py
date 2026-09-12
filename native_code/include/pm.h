@@ -2,6 +2,7 @@
 #define PM_H
 
 #include <Python.h>
+#include <stdbool.h>
 
 PyObject *pm_prevent_sleep(PyObject *self, PyObject *args);
 
