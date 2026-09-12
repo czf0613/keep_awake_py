@@ -47,7 +47,8 @@ started manually, and is reused by the release workflow. Its 42 jobs cover:
 - Ubuntu x86_64, Windows x86_64, macOS x86_64 and macOS arm64.
 - Windows ARM64 on `windows-11-arm`: Python 3.11–3.14 and 3.13t/3.14t, the native
   versions available through uv. CI asserts `sysconfig.get_platform() == 'win-arm64'`
-  to reject accidental x64 emulation. These six jobs also contribute release wheels.
+  to reject accidental x64 emulation and explicitly requests the ARM64 interpreter
+  during installation, testing and builds. These six jobs also contribute release wheels.
 - Python/stub compilation, native extension compilation, tests, sdist/wheel
   builds, distribution metadata, and testing a separately installed wheel.
 

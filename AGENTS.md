@@ -74,7 +74,9 @@ addition to the development interpreter; see `docs/DEVELOPMENT.md`.
   with annotations in `_native_api.pyi`.
 - CI includes native Windows ARM64 on `windows-11-arm`, Python 3.11–3.14 and
   3.13t/3.14t. Preserve the architecture assertion so x64 emulation cannot pass as
-  ARM64 coverage. Older Python versions remain covered on Windows x86_64.
+  ARM64 coverage. Use an explicit `cpython-<version>-windows-aarch64-none` request
+  throughout those jobs; a version-only request can select x64 Python under
+  emulation. Older Python versions remain covered on Windows x86_64.
 - Preserve unrelated local changes. Commit, push, and actual release publication
   are distinct actions; do them only when requested.
 
