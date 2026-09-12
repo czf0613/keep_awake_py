@@ -9,7 +9,7 @@ Support CPython 3.8 and later, including free-threaded 3.13/3.14 builds.
 - `src/keep_awake/dbus_api.py`: Linux D-Bus implementation using pure Python Jeepney.
 - `src/keep_awake/_native_api.pyi`: native API annotations and docstrings.
 - `native_code/src/ext.c`: CPython module initialization.
-- `native_code/src/pm_macos.c`: IOKit assertions protected by a pthread mutex.
+- `native_code/src/pm_macos.c`: IOKit assertions serialized by the public Python API.
 - `native_code/src/pm_windows.c`: a synchronized worker owning Windows execution state.
 - `tests/`: unit tests, private D-Bus protocol tests, and native smoke tests.
 - `.github/workflows/`: compatibility CI and PyPI Trusted Publishing.
@@ -46,9 +46,20 @@ addition to the development interpreter; see `docs/DEVELOPMENT.md`.
 ## Implementation contracts
 
 - Preserve `requires-python = ">=3.8"`; avoid newer syntax and unguarded newer APIs.
-- All callers share one process-wide inhibitor. Repeated acquisition is idempotent,
-  not reference counted. Do not silently change ownership/nesting semantics.
-- Protect shared native/Python state with explicit locks, including no-GIL builds.
+- The public API uses a shared reference count under a Python lock. Each successful
+  `prevent_sleep()` requires one `allow_sleep()`. Only 0-to-1 and 1-to-0 transitions
+  call the backend. Failed acquisition does not count; release at zero is a no-op.
+- Private native/D-Bus backends remain idempotent. Do not add a second counter there.
+  Guards must track successful entries per thread and support nesting; failed
+  entries must not release another caller's reference.
+- The public Python lock serializes reference ownership and native C entry points,
+  including no-GIL builds. Do not add a redundant C mutex. Direct private extension
+  calls are unsupported and have no concurrency guarantee. Windows ready/stop
+  events are still required to synchronize communication with its native worker.
+- Register exit cleanup only in the public module. On interpreter exit, release
+  all remaining references once under its lock and reject subsequent acquisitions.
+  Do not use a single `allow_sleep()` as the exit handler: it only releases one
+  reference. Backends must not register their own exit handlers.
 - D-Bus calls must use a private connection, retain it while inhibited, and close
   it on failure/release. Do not connect during module import or close another
   library's shared session bus.
@@ -61,6 +72,9 @@ addition to the development interpreter; see `docs/DEVELOPMENT.md`.
   always use braces around control-flow bodies.
 - Keep `ml_doc` as `NULL` in C method tables. Document each exposed native function
   with annotations in `_native_api.pyi`.
+- CI includes native Windows ARM64 on `windows-11-arm`, Python 3.11–3.14 and
+  3.13t/3.14t. Preserve the architecture assertion so x64 emulation cannot pass as
+  ARM64 coverage. Older Python versions remain covered on Windows x86_64.
 - Preserve unrelated local changes. Commit, push, and actual release publication
   are distinct actions; do them only when requested.
 

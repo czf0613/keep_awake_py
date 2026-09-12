@@ -1,6 +1,5 @@
 """Linux desktop inhibition over a private, lazily opened D-Bus connection."""
 
-import atexit
 import logging
 from threading import Lock
 from typing import Optional
@@ -111,6 +110,3 @@ def session_off() -> None:
         finally:
             _close(_connection)
             _connection, _cookie, _backend = None, None, None
-
-
-atexit.register(session_off)

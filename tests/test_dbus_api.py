@@ -1,6 +1,5 @@
 """Exercise Linux protocol/lifecycle logic without a desktop session."""
 
-import atexit
 import importlib
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -22,7 +21,6 @@ def backend(monkeypatch):
         )
     yield module
     module.session_off()
-    atexit.unregister(module.session_off)
     sys.modules.pop("keep_awake.dbus_api", None)
 
 
@@ -197,3 +195,23 @@ def test_concurrent_calls_share_one_inhibitor(backend, monkeypatch):
         list(pool.map(lambda _: backend.session_off(), range(40)))
     assert len(connection.calls) == 2
     assert connection.closed
+
+
+def test_public_release_interrupt_reacquires_a_real_inhibitor(backend, monkeypatch):
+    import keep_awake
+
+    monkeypatch.setattr(keep_awake, "os_platform", "linux")
+    monkeypatch.setattr(keep_awake, "_references", 0)
+    connection = Connection([reply((5,)), KeyboardInterrupt()])
+    connect(monkeypatch, backend, connection)
+    assert keep_awake.prevent_sleep()
+    with pytest.raises(KeyboardInterrupt):
+        keep_awake.allow_sleep()
+    assert connection.closed
+    replacement = Connection([reply((6,)), reply()])
+    connect(monkeypatch, backend, replacement)
+    try:
+        assert keep_awake.prevent_sleep()
+        assert len(replacement.calls) == 1
+    finally:
+        keep_awake.allow_sleep()

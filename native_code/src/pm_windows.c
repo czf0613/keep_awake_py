@@ -1,8 +1,9 @@
 #include "pm.h"
 #include <windows.h>
 
+/* All entry points require the public Python API's lock.
+ * The ready/stop events synchronize communication with the native worker. */
 static HANDLE h_thread = NULL;
-static SRWLOCK mutex = SRWLOCK_INIT;
 static HANDLE stop_event = NULL;
 static HANDLE ready_event = NULL;
 static bool started = false;
@@ -19,7 +20,7 @@ static DWORD WINAPI run_forever(LPVOID args)
     return 0;
 }
 
-/* Called with mutex held, after any worker has exited. */
+/* Called with the public Python lock held, after any worker has exited. */
 static void close_handles(void)
 {
     if (h_thread != NULL)
@@ -41,10 +42,8 @@ static void close_handles(void)
 
 static bool prevent_sleep(void)
 {
-    AcquireSRWLockExclusive(&mutex);
     if (h_thread != NULL)
     {
-        ReleaseSRWLockExclusive(&mutex);
         return true;
     }
     stop_event = CreateEventW(NULL, TRUE, FALSE, NULL);
@@ -52,7 +51,6 @@ static bool prevent_sleep(void)
     if (stop_event == NULL || ready_event == NULL)
     {
         close_handles();
-        ReleaseSRWLockExclusive(&mutex);
         return false;
     }
     started = false;
@@ -60,7 +58,6 @@ static bool prevent_sleep(void)
     if (h_thread == NULL)
     {
         close_handles();
-        ReleaseSRWLockExclusive(&mutex);
         return false;
     }
     WaitForSingleObject(ready_event, INFINITE);
@@ -70,22 +67,17 @@ static bool prevent_sleep(void)
         WaitForSingleObject(h_thread, INFINITE);
         close_handles();
     }
-    ReleaseSRWLockExclusive(&mutex);
     return success;
 }
 
 static void allow_sleep(void)
 {
-    AcquireSRWLockExclusive(&mutex);
-
     if (h_thread != NULL)
     {
         SetEvent(stop_event);
         WaitForSingleObject(h_thread, INFINITE);
         close_handles();
     }
-
-    ReleaseSRWLockExclusive(&mutex);
 }
 
 PyObject *pm_prevent_sleep(PyObject *self, PyObject *args)

@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import sysconfig
+import textwrap
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
@@ -36,11 +37,14 @@ def test_native_concurrent_calls():
     from keep_awake import prevent_sleep, allow_sleep
 
     def cycle(_):
+        acquired = 0
         try:
-            assert prevent_sleep()
-            assert prevent_sleep()
+            for _ in range(2):
+                assert prevent_sleep()
+                acquired += 1
         finally:
-            allow_sleep()
+            for _ in range(acquired):
+                allow_sleep()
 
     try:
         with ThreadPoolExecutor(max_workers=8) as pool:
@@ -49,10 +53,42 @@ def test_native_concurrent_calls():
         allow_sleep()
 
 
+def test_interpreter_exit_calls_native_release():
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            textwrap.dedent(
+                """
+                import keep_awake
+                from keep_awake import _native_api
+
+                release = _native_api._allow_sleep
+
+                def observed_release():
+                    release()
+                    print("native released")
+
+                _native_api._allow_sleep = observed_release
+                for _ in range(3):
+                    assert keep_awake.prevent_sleep()
+                """
+            ),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "native released"
+    assert not result.stderr
+
+
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows handle accounting")
 def test_windows_repeated_acquisition_does_not_leak_handles():
     import ctypes
     from ctypes import wintypes
+
     from keep_awake import prevent_sleep, allow_sleep
 
     kernel = ctypes.WinDLL("kernel32", use_last_error=True)
@@ -71,9 +107,12 @@ def test_windows_repeated_acquisition_does_not_leak_handles():
 
     allow_sleep()
     before = handle_count()
+    acquired = 0
     try:
         for _ in range(50):
             assert prevent_sleep()
+            acquired += 1
     finally:
-        allow_sleep()
+        for _ in range(acquired):
+            allow_sleep()
     assert handle_count() <= before + 2

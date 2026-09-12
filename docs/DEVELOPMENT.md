@@ -41,15 +41,27 @@ not prove desktop policy honored the request.
 ## CI
 
 `.github/workflows/ci.yml` runs on pushes and pull requests to `master`, can be
-started manually, and is reused by the release workflow. Its 36 jobs cover:
+started manually, and is reused by the release workflow. Its 42 jobs cover:
 
 - CPython 3.8–3.14 and free-threaded 3.13t/3.14t.
 - Ubuntu x86_64, Windows x86_64, macOS x86_64 and macOS arm64.
+- Windows ARM64 on `windows-11-arm`: Python 3.11–3.14 and 3.13t/3.14t, the native
+  versions available through uv. CI asserts `sysconfig.get_platform() == 'win-arm64'`
+  to reject accidental x64 emulation. These six jobs also contribute release wheels.
 - Python/stub compilation, native extension compilation, tests, sdist/wheel
   builds, distribution metadata, and testing a separately installed wheel.
 
 Linux desktop smoke tests are opt-in; private D-Bus service tests run on Ubuntu.
 Windows uses MSVC via setuptools. CMake remains an IDE-only file.
+
+Public reference-count tests cover the two-thread ownership scenario, concurrent
+acquisition/release, nested/shared guards and failed requests on all three backend
+routes. Private backends stay idempotent: tests invoking private entry points must
+not assume they maintain public ownership counts.
+Exit tests use real subprocess termination, including `sys.exit()` and uncaught
+exceptions, and verify that later exit callbacks cannot reacquire. Native tests
+observe the actual C release call; private-bus tests verify that interpreter exit
+sends the corresponding GNOME/freedesktop release message.
 
 ## Publish to PyPI
 

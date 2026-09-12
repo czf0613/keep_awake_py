@@ -1,12 +1,12 @@
 """Use a private D-Bus daemon and synthetic desktop service, never the real desktop."""
 
-import atexit
 import importlib
 import shutil
 import socket
 import subprocess
 import sys
 import sysconfig
+import textwrap
 from threading import Event, Thread
 
 import pytest
@@ -14,11 +14,16 @@ from jeepney import HeaderFields, new_method_return
 from jeepney.bus_messages import message_bus
 from jeepney.io.blocking import open_dbus_connection
 
+pytestmark = pytest.mark.skipif(
+    sys.platform not in ("linux", "darwin"), reason="Unix D-Bus transport tests"
+)
+
 
 @pytest.mark.parametrize(
     "service", ["org.gnome.SessionManager", "org.freedesktop.ScreenSaver"]
 )
-def test_real_dbus_round_trip(monkeypatch, tmp_path, service):
+@pytest.mark.parametrize("release_mode", ["explicit", "interpreter_exit"])
+def test_real_dbus_round_trip(monkeypatch, tmp_path, service, release_mode):
     executable = shutil.which("dbus-daemon")
     if executable is None:
         pytest.skip("dbus-daemon is not installed")
@@ -84,13 +89,38 @@ def test_real_dbus_round_trip(monkeypatch, tmp_path, service):
 
         worker = Thread(target=serve, daemon=True)
         worker.start()
-        sys.modules.pop("keep_awake.dbus_api", None)
-        backend = importlib.import_module("keep_awake.dbus_api")
-        if sysconfig.get_config_var("Py_GIL_DISABLED"):
-            assert not sys._is_gil_enabled()
-        assert backend.session_on()
-        assert backend.session_on()
-        backend.session_off()
+        if release_mode == "interpreter_exit":
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    textwrap.dedent(
+                        """
+                        import socket
+                        import sys
+                        import keep_awake
+                        if sys.platform == "darwin" and hasattr(socket, "SCM_CREDS"):
+                            del socket.SCM_CREDS
+                        keep_awake.os_platform = "linux"
+                        for _ in range(3):
+                            assert keep_awake.prevent_sleep()
+                        """
+                    ),
+                ],
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
+            assert result.returncode == 0, result.stderr
+            assert not result.stderr
+        else:
+            sys.modules.pop("keep_awake.dbus_api", None)
+            backend = importlib.import_module("keep_awake.dbus_api")
+            if sysconfig.get_config_var("Py_GIL_DISABLED"):
+                assert not sys._is_gil_enabled()
+            assert backend.session_on()
+            assert backend.session_on()
+            backend.session_off()
         assert len(calls) == 2
         assert calls[0].header.fields[HeaderFields.interface] == service
         assert calls[1].body == (0,)
@@ -98,7 +128,6 @@ def test_real_dbus_round_trip(monkeypatch, tmp_path, service):
     finally:
         if backend is not None:
             backend.session_off()
-            atexit.unregister(backend.session_off)
         stop.set()
         if worker is not None:
             worker.join(timeout=2)
