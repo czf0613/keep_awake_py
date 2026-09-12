@@ -7,6 +7,11 @@ on:
     branches: [master]
   workflow_dispatch:
   workflow_call:
+    inputs:
+      release-ref:
+        description: Release tag to build and collect wheels for
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -19,7 +24,14 @@ jobs:
     env:
       # Some Windows ARM runners launch uv under x64 emulation. Never let
       # interpreter discovery silently select an x64 Python for an ARM build.
-      PYTHON_REQUEST: ${{ matrix.os == 'windows-11-arm' && format('cpython-{0}-windows-aarch64-none', matrix.python) || matrix.python }}
+      PYTHON_REQUEST: >-
+        ${{ matrix.os == 'windows-11-arm' && format('cpython-{0}-windows-aarch64-none', matrix.python)
+         || matrix.os == 'macos-14' && format('cpython-{0}-macos-aarch64-none', matrix.python)
+         || matrix.os == 'macos-15-intel' && format('cpython-{0}-macos-x86_64-none', matrix.python)
+         || matrix.python }}
+      MACOS_WHEEL_ARCH: ${{ matrix.os == 'macos-14' && 'arm64' || matrix.os == 'macos-15-intel' && 'x86_64' || '' }}
+      UV_MANAGED_PYTHON: ${{ startsWith(matrix.os, 'macos-') && 'true' || 'false' }}
+      ARCHFLAGS: ${{ matrix.os == 'macos-14' && '-arch arm64' || matrix.os == 'macos-15-intel' && '-arch x86_64' || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -35,6 +47,8 @@ jobs:
           - {os: windows-11-arm, python: '3.14t'}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.release-ref }}
       - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
           version: '0.12.13'
@@ -61,6 +75,8 @@ jobs:
           assert bool(sysconfig.get_config_var('Py_GIL_DISABLED')) == expected.endswith('t')
           if os.environ['EXPECTED_WINDOWS_ARM64'] == 'true':
               assert sysconfig.get_platform() == 'win-arm64', sysconfig.get_platform()
+          if os.environ['MACOS_WHEEL_ARCH']:
+              assert sysconfig.get_platform().endswith('-' + os.environ['MACOS_WHEEL_ARCH']), sysconfig.get_platform()
           print(sys.version)
           PY
       - name: Compile Python sources
@@ -69,6 +85,27 @@ jobs:
         run: uv run --frozen --python '${{ env.PYTHON_REQUEST }}' pytest -q
       - name: Build source distribution and wheel
         run: uv build --python '${{ env.PYTHON_REQUEST }}'
+      - name: Verify macOS wheel architecture
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          uv run --frozen --python '${{ env.PYTHON_REQUEST }}' python - <<'PY'
+          import os
+          import subprocess
+          import tempfile
+          from pathlib import Path
+          from zipfile import ZipFile
+          expected = os.environ['MACOS_WHEEL_ARCH']
+          for wheel in Path('dist').glob('*.whl'):
+              assert wheel.name.endswith('_' + expected + '.whl'), wheel.name
+              with ZipFile(wheel) as archive, tempfile.TemporaryDirectory() as directory:
+                  binaries = [name for name in archive.namelist() if name.endswith('.so')]
+                  assert len(binaries) == 1, binaries
+                  binary = Path(directory) / 'native.so'
+                  binary.write_bytes(archive.read(binaries[0]))
+                  arches = subprocess.check_output(['lipo', '-archs', str(binary)], text=True).split()
+                  assert arches == [expected], arches
+          PY
       - name: Validate distribution metadata
         run: uvx --python 3.14 twine check dist/*
       - name: Test the installed wheel
@@ -81,7 +118,7 @@ jobs:
       # A py3-none-any Linux wheel would also install on Windows/macOS and hide
       # the missing native extension. Linux installs from the portable sdist.
       - name: Collect native wheels for a release
-        if: github.event_name == 'release' && runner.os != 'Linux'
+        if: inputs.release-ref != '' && runner.os != 'Linux'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: wheel-${{ matrix.os }}-${{ matrix.python }}

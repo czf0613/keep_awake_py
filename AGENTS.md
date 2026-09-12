@@ -77,6 +77,10 @@ addition to the development interpreter; see `docs/DEVELOPMENT.md`.
   ARM64 coverage. Use an explicit `cpython-<version>-windows-aarch64-none` request
   throughout those jobs; a version-only request can select x64 Python under
   emulation. Older Python versions remain covered on Windows x86_64.
+- macOS CI must use explicitly selected, uv-managed single-architecture Python
+  and matching `ARCHFLAGS`. Check both the wheel tag and its binary with `lipo`.
+  Never merge artifact downloads into one directory: duplicate filenames can be
+  written concurrently. Assemble distributions sequentially and reject duplicates.
 - Preserve unrelated local changes. Commit, push, and actual release publication
   are distinct actions; do them only when requested.
 

@@ -45,6 +45,8 @@ started manually, and is reused by the release workflow. Its 42 jobs cover:
 
 - CPython 3.8–3.14 and free-threaded 3.13t/3.14t.
 - Ubuntu x86_64, Windows x86_64, macOS x86_64 and macOS arm64.
+- macOS builds use managed Python for the target architecture and matching
+  `ARCHFLAGS`; wheel tags and native binary architectures are checked with `lipo`.
 - Windows ARM64 on `windows-11-arm`: Python 3.11–3.14 and 3.13t/3.14t, the native
   versions available through uv. CI asserts `sysconfig.get_platform() == 'win-arm64'`
   to reject accidental x64 emulation and explicitly requests the ARM64 interpreter
@@ -78,6 +80,20 @@ Trusted Publisher configuration for the existing `keep-awake` project:
 The workflow uses GitHub OIDC with `id-token: write` only in the publishing job.
 No PyPI API token is required. Keep these names in sync with the PyPI publisher
 and GitHub environment if renaming the repository/workflow.
+
+The publishing job downloads artifacts into separate directories, then assembles
+them sequentially while rejecting duplicate filenames and corrupt wheels. This
+prevents two build jobs from overwriting the same wheel during concurrent download.
+
+If a release fails before upload, fix and push the workflow, then use its manual
+trigger with the existing tag, for example:
+
+```sh
+gh workflow run publish.yml --ref master -f tag=1.2.0
+```
+
+This rebuilds the source and all wheels from that tag without changing the tag.
+An already uploaded PyPI filename cannot be overwritten.
 
 1. Update `[project].version` in `pyproject.toml` to an unused version, then update
    the lockfile. Version `1.1.3` already exists on PyPI and cannot be overwritten.

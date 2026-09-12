@@ -19,6 +19,7 @@
 | Interpreter exit | Only Linux registered cleanup; one public release would leave multiple references active | Register a shared exit handler in the public module, release all outstanding references, and reject later acquisitions |
 | Windows ARM64 | No native ARM64 CI or release wheels | Add six native Windows ARM64 jobs (Python 3.11–3.14 and 3.13t/3.14t), with an architecture assertion |
 | ARM64 interpreter selection | Version-only uv requests selected emulated x64 Python for three ARM64 jobs | Explicitly request `cpython-<version>-windows-aarch64-none` for all ARM64 build/test commands, retaining the architecture assertion |
+| Release artifact assembly | macOS system interpreters produced identical universal2 wheel names; concurrent merged downloads corrupted a wheel | Use managed single-architecture macOS Python, validate tags and binaries, download separately and reject duplicate filenames during assembly |
 
 Python source and stubs use Python 3.8-compatible syntax. Native code uses the
 long-standing CPython API except for a guarded free-threading declaration. The
